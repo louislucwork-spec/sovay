@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sổ Vay Nợ - Bảng Ngang Cầu Vồng</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f1f5f9;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1e293b}
+.app{max-width:800px;margin:auto;min-height:100vh;background:#f8fafc;box-shadow:0 0 20px rgba(0,0,0,0.05)}
+
+header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,0.92);backdrop-filter:blur(8px);padding:14px 15px 12px;box-shadow:0 2px 10px rgba(0,0,0,0.05)}
+header h1{margin:0 0 12px;font-size:22px;display:flex;align-items:center;gap:8px}
+
+/* Hiệu ứng 7 sắc cầu vồng mượt mà, chậm dịu mắt */
+@keyframes rainbowText {
+  0%   { color: #ef4444; text-shadow: 0 0 8px rgba(239, 68, 68, 0.3); }
+  16%  { color: #f97316; text-shadow: 0 0 8px rgba(249, 115, 22, 0.3); }
+  33%  { color: #eab308; text-shadow: 0 0 8px rgba(234, 179, 8, 0.3); }
+  50%  { color: #10b981; text-shadow: 0 0 8px rgba(16, 185, 129, 0.3); }
+  66%  { color: #06b6d4; text-shadow: 0 0 8px rgba(6, 182, 212, 0.3); }
+  83%  { color: #8b5cf6; text-shadow: 0 0 8px rgba(139, 92, 246, 0.3); }
+  100% { color: #ef4444; text-shadow: 0 0 8px rgba(239, 68, 68, 0.3); }
+}
+.rainbow {
+  animation: rainbowText 10s linear infinite;
+  font-weight: 800;
+}
+
+.tabs{display:flex;gap:8px;background:#e2e8f0;padding:4px;border-radius:12px}
+.tab{flex:1;border:0;border-radius:9px;padding:10px 5px;background:transparent;font-weight:700;font-size:13px;color:#64748b;cursor:pointer;transition:all 0.25s ease}
+.tab.active{background:#2563eb;color:#fff;box-shadow:0 2px 8px rgba(37,99,235,0.3)}
+
+main{padding:14px}
+.form-card{background:#fff;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 4px 15px rgba(0,0,0,0.05);border:1px solid #e2e8f0;animation:fadeIn 0.3s ease-out}
+.form-card h2{font-size:17px;margin:0 0 12px;color:#0f172a}
+label{display:block;font-size:13px;font-weight:700;margin:10px 0 5px;color:#475569}
+input,textarea,button{font:inherit}
+input[type=text],input[type=number],input[type=date],textarea{
+ width:100%;border:1px solid #cbd5e1;border-radius:10px;padding:10px 12px;background:#fff;transition:border-color 0.2s, box-shadow 0.2s;outline:none;
+}
+input:focus,textarea:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,0.15)}
+textarea{resize:vertical;min-height:65px}
+
+.add-btn{width:100%;margin-top:12px;border:0;border-radius:10px;padding:12px;background:#16a34a;color:#fff;font-weight:700;cursor:pointer;transition:transform 0.15s, background-color 0.2s, box-shadow 0.2s;box-shadow:0 3px 10px rgba(22,163,74,0.25)}
+.add-btn:active{transform:scale(0.98)}
+.add-btn:hover{background:#15803d}
+
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat{background:#fff;border-radius:14px;padding:12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.04);border:1px solid #f1f5f9}
+.stat small{display:block;color:#64748b;font-size:12px}.stat b{display:block;margin-top:4px;font-size:17px;color:#0f172a}
+
+/* Container cuộn bảng danh sách ngang */
+.table-container{
+ width: 100%;
+ overflow-x: auto;
+ background: #fff;
+ border-radius: 14px;
+ border: 1px solid #e2e8f0;
+ box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+ margin-top: 10px;
+}
+.debt-table{
+ width: 100%;
+ border-collapse: collapse;
+ min-width: 680px;
+ font-size: 13px;
+ text-align: left;
+}
+.debt-table th{
+ background: #f8fafc;
+ color: #475569;
+ font-weight: 700;
+ padding: 12px 10px;
+ border-bottom: 2px solid #e2e8f0;
+ white-space: nowrap;
+}
+.debt-table td{
+ padding: 10px;
+ border-bottom: 1px solid #f1f5f9;
+ vertical-align: middle;
+}
+.debt-table tbody tr{
+ transition: background 0.2s ease, opacity 0.3s ease, transform 0.3s ease;
+}
+.debt-table tbody tr:hover{
+ background: #f8fafc;
+}
+
+/* Kiểu chữ nhỏ gọn cho các nút thao tác & ảnh */
+.btn-img-small{
+ display: inline-flex;
+ align-items: center;
+ gap: 4px;
+ font-size: 11px;
+ font-weight: 700;
+ padding: 4px 8px;
+ border-radius: 6px;
+ border: 1px solid #2563eb;
+ background: #eff6ff;
+ color: #2563eb;
+ cursor: pointer;
+ transition: all 0.2s;
+}
+.btn-img-small:hover{
+ background: #2563eb;
+ color: #fff;
+}
+.no-img{
+ font-size: 11px;
+ color: #94a3b8;
+ font-style: italic;
+}
+
+.action-btns{
+ display: flex;
+ gap: 4px;
+ margin-top: 4px;
+}
+.btn-mini{
+ border: 0;
+ border-radius: 6px;
+ padding: 4px 7px;
+ font-size: 11px;
+ font-weight: 700;
+ cursor: pointer;
+ background: #e2e8f0;
+ color: #334155;
+ transition: background 0.2s;
+}
+.btn-mini:hover{background:#cbd5e1}
+.btn-mini.delete{background:#fee2e2;color:#b91c1c}
+.btn-mini.delete:hover{background:#fca5a5}
+
+.hidden{display:none!important}
+.empty{width:100%;text-align:center;color:#94a3b8;padding:30px 10px;font-size:14px}
+footer{padding:15px;text-align:center;color:#94a3b8;font-size:12px}
+
+/* Modal xem ảnh phóng to */
+.modal{position:fixed;inset:0;background:rgba(15,23,42,0.75);backdrop-filter:blur(6px);z-index:100;display:flex;align-items:center;justify-content:center;padding:15px}
+.modal-content{position:relative;max-width:90%;max-height:90vh;animation:zoomIn 0.25s cubic-bezier(0.16,1,0.3,1) forwards}
+.modal img{max-width:100%;max-height:85vh;border-radius:12px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.3)}
+.close{position:absolute;right:-12px;top:-12px;background:#fff;color:#0f172a;border:0;border-radius:50%;width:36px;height:36px;font-size:20px;font-weight:700;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,0.2)}
+
+.search{margin-bottom:12px}
+.file-label{display:block;border:2px dashed #cbd5e1;border-radius:10px;padding:12px;text-align:center;color:#475569;background:#f8fafc;cursor:pointer;transition:border-color 0.2s, background 0.2s}
+.file-label:hover{border-color:#2563eb;background:#eff6ff}
+
+.image-preview-container{
+ position:relative;
+ margin-top:8px;
+ border-radius:10px;
+ overflow:hidden;
+ border:1px solid #e2e8f0;
+ max-height:150px;
+ background:#f1f5f9;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+}
+.image-preview-container img{width:100%;height:150px;object-fit:cover}
+.remove-img-btn{
+ position:absolute;
+ top:8px;
+ right:8px;
+ background:rgba(220,38,38,0.85);
+ color:#fff;
+ border:none;
+ border-radius:20px;
+ padding:4px 10px;
+ font-size:12px;
+ font-weight:700;
+ cursor:pointer;
+ backdrop-filter:blur(4px);
+}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes zoomIn{from{opacity:0;transform:scale(0.85)}to{opacity:1;transform:scale(1)}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <h1 class="rainbow">📒 SỔ VAY NỢ</h1>
+  <div class="tabs">
+    <button class="tab" id="tabMine" onclick="switchTab('mine')">💸 Mình vay nợ</button>
+    <button class="tab active" id="tabOwe" onclick="switchTab('owe')">💰 Người ta nợ mình</button>
+  </div>
+</header>
+
+<main>
+<button class="add-btn" id="showAddBtn" onclick="showAddForm()">＋ Thêm khoản nợ mới</button>
+
+<section class="form-card hidden" id="formCard">
+  <h2 id="formTitle" class="rainbow">➕ Thêm người nợ mình</h2>
+  <label>Tên người</label>
+  <input id="name" type="text" placeholder="Ví dụ: Nguyễn Văn A">
+
+  <label>Số tiền nợ (VNĐ)</label>
+  <!-- Sửa type thành text và thêm sự kiện oninput để định dạng số -->
+  <input id="amount" type="text" inputmode="numeric" placeholder="100,000" oninput="formatInput(this)">
+
+  <label>Ngày vay / ngày phát sinh nợ</label>
+  <input id="date" type="date">
+
+  <label>Lãi suất mỗi ngày (VNĐ / 1.000.000 VNĐ)</label>
+  <input id="rate" type="number" min="0" step="100" value="4000">
+
+  <div id="rateHint" style="font-size:12px;color:#64748b;margin-top:5px">
+    Ví dụ: 1.000.000đ × 4.000đ/ngày = 4.000đ/ngày.
+  </div>
+
+  <label>Ảnh chuyển khoản / giấy tờ</label>
+  <label class="file-label">
+    📷 Chọn hình ảnh chứng từ
+    <input id="image" type="file" accept="image/*" class="hidden">
+  </label>
+  <div id="imageName" style="font-size:12px;color:#64748b;margin-top:4px"></div>
+
+  <div id="imagePreviewBox" class="image-preview-container hidden">
+    <img id="previewImg" src="" alt="Xem trước">
+    <button type="button" class="remove-img-btn" onclick="removeImagePreview()">✕ Xóa ảnh</button>
+  </div>
+
+  <label>Ghi chú</label>
+  <textarea id="note" placeholder="Ví dụ: Hẹn trả ngày..."></textarea>
+
+  <button class="add-btn" id="submitBtn" onclick="saveDebt()">💾 Lưu khoản nợ</button>
+  <button class="small-btn" style="width:100%;margin-top:8px;border:0;padding:10px;border-radius:8px;background:#e2e8f0;font-weight:bold;cursor:pointer" onclick="hideAddForm()">✕ Đóng</button>
+</section>
+
+<div class="stats">
+  <div class="stat"><small>Tổng tiền gốc</small><b id="totalPrincipal" class="rainbow">0đ</b></div>
+  <div class="stat"><small>Tổng lãi hiện tại</small><b id="totalInterest" class="rainbow">0đ</b></div>
+</div>
+
+<input class="search" id="search" type="text" placeholder="🔎 Tìm kiếm theo tên..." oninput="render()">
+
+<!-- Bảng hiển thị thông tin dạng hàng ngang -->
+<div class="table-container">
+  <table class="debt-table">
+    <thead>
+      <tr>
+        <th>Tên</th>
+        <th>Số tiền vay</th>
+        <th>Ngày vay</th>
+        <th>Số ngày vay</th>
+        <th>Lãi suất / Lãi</th>
+        <th>Bằng chứng & Thao tác</th>
+      </tr>
+    </thead>
+    <tbody id="list"></tbody>
+  </table>
+</div>
+</main>
+
+<footer>Dữ liệu được lưu an toàn trên trình duyệt của thiết bị này.</footer>
+</div>
+
+<!-- Modal xem ảnh phóng to -->
+<div id="modal" class="modal hidden" onclick="closeImage()">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <button class="close" onclick="closeImage()">×</button>
+    <img id="modalImg" src="" alt="Ảnh chi tiết">
+  </div>
+</div>
+
+<script>
+const KEY = 'so_vay_no_v1';
+let debts = JSON.parse(localStorage.getItem(KEY) || '[]');
+
+// Mặc định cài đặt tab là 'owe' (Người ta nợ mình)
+let currentTab = 'owe';
+let editingId = null;
+let selectedImage = '';
+
+document.getElementById('date').value = new Date().toISOString().slice(0,10);
+
+// Hàm định dạng số tiền (thêm dấu phẩy tự động khi gõ)
+function formatInput(el) {
+  // Sửa lỗi ở đây: thay vì \\D, chỉ dùng \D để lấy đúng chữ số
+  let val = el.value.replace(/\D/g, ''); 
+  if (val === '') {
+    el.value = '';
+    return;
+  }
+  // Thêm dấu phẩy ngăn cách hàng nghìn (chuẩn en-US cho ra dấu phẩy)
+  el.value = Number(val).toLocaleString('en-US');
+}
+
+document.getElementById('image').addEventListener('change', function(){
+  const file = this.files[0];
+  if(!file) return;
+  if(file.size > 8 * 1024 * 1024){
+    alert('Ảnh quá lớn. Vui lòng chọn ảnh dưới 8MB.');
+    this.value='';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    selectedImage = e.target.result;
+    document.getElementById('previewImg').src = selectedImage;
+    document.getElementById('imagePreviewBox').classList.remove('hidden');
+    document.getElementById('imageName').textContent = '✓ Đã chọn: ' + file.name;
+  };
+  reader.readAsDataURL(file);
+});
+
+function removeImagePreview(){
+  selectedImage = '';
+  document.getElementById('image').value = '';
+  document.getElementById('previewImg').src = '';
+  document.getElementById('imagePreviewBox').classList.add('hidden');
+  document.getElementById('imageName').textContent = '';
+}
+
+function switchTab(tab){
+  currentTab = tab;
+  document.getElementById('tabMine').classList.toggle('active', tab==='mine');
+  document.getElementById('tabOwe').classList.toggle('active', tab==='owe');
+  document.getElementById('formTitle').textContent =
+    tab==='mine' ? '➕ Thêm người mình nợ' : '➕ Thêm người nợ mình';
+  clearForm();
+  hideAddForm();
+  render();
+}
+
+function showAddForm(){
+  document.getElementById('formCard').classList.remove('hidden');
+  document.getElementById('showAddBtn').classList.add('hidden');
+  document.getElementById('formTitle').textContent =
+    currentTab==='mine' ? '➕ Thêm người mình nợ' : '➕ Thêm người nợ mình';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function hideAddForm(){
+  document.getElementById('formCard').classList.add('hidden');
+  document.getElementById('showAddBtn').classList.remove('hidden');
+  clearForm();
+}
+
+function save(){
+  localStorage.setItem(KEY, JSON.stringify(debts));
+}
+
+function formatMoney(n){
+  return Math.round(n || 0).toLocaleString('vi-VN') + 'đ';
+}
+
+function calcDays(dateStr){
+  const start = new Date(dateStr + 'T00:00:00');
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const diff = Math.floor((today - start) / 86400000);
+  return Math.max(1, diff + 1);
+}
+
+function calcInterest(d){
+  const days = calcDays(d.date);
+  return d.amount * (d.rate / 1000000) * days;
+}
+
+function saveDebt(){
+  const name = document.getElementById('name').value.trim();
+  // Sửa lỗi \D ở đoạn lưu số tiền
+  const amountStr = document.getElementById('amount').value.replace(/\D/g, '');
+  const amount = Number(amountStr);
+  
+  const date = document.getElementById('date').value;
+  const rate = Number(document.getElementById('rate').value) || 0;
+  const note = document.getElementById('note').value.trim();
+
+  if(!name){alert('Vui lòng nhập tên người nợ/vay.');return}
+  if(!amount || amount <= 0){alert('Vui lòng nhập số tiền nợ hợp lệ.');return}
+  if(!date){alert('Vui lòng chọn ngày nợ.');return}
+
+  if(editingId !== null && editingId !== undefined && editingId !== ''){
+    const d = debts.find(x => String(x.id) === String(editingId));
+    if(d){
+      Object.assign(d, { name, amount, date, rate, note, type: currentTab, image: selectedImage });
+    }
+  } else {
+    debts.unshift({
+      id: Date.now().toString(),
+      name, amount, date, rate, note, type: currentTab, image: selectedImage
+    });
+  }
+  save();
+  clearForm();
+  hideAddForm();
+  render();
+}
+
+function clearForm(){
+  editingId = null;
+  selectedImage = '';
+  document.getElementById('name').value = '';
+  document.getElementById('amount').value = '';
+  document.getElementById('date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('rate').value = '4000';
+  document.getElementById('note').value = '';
+  document.getElementById('image').value = '';
+  document.getElementById('imageName').textContent = '';
+  removeImagePreview();
+  document.getElementById('submitBtn').textContent = '💾 Lưu khoản nợ';
+}
+
+function editDebt(id){
+  const d = debts.find(x => String(x.id) === String(id));
+  if(!d) return;
+  
+  editingId = String(d.id);
+  document.getElementById('name').value = d.name;
+  
+  // Format lại số tiền với dấu phẩy khi ấn nút sửa
+  document.getElementById('amount').value = Number(d.amount).toLocaleString('en-US');
+  
+  document.getElementById('date').value = d.date;
+  document.getElementById('rate').value = d.rate;
+  document.getElementById('note').value = d.note || '';
+  
+  selectedImage = d.image || '';
+  if(d.image){
+    document.getElementById('previewImg').src = d.image;
+    document.getElementById('imagePreviewBox').classList.remove('hidden');
+    document.getElementById('imageName').textContent = '✓ Có ảnh đính kèm';
+  } else {
+    removeImagePreview();
+  }
+
+  document.getElementById('submitBtn').textContent = '✏️ Cập nhật khoản nợ';
+  document.getElementById('formCard').classList.remove('hidden');
+  document.getElementById('showAddBtn').classList.add('hidden');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function deleteDebt(id, btnElement){
+  if(confirm('Bạn có chắc chắn muốn xóa khoản nợ này?')){
+    const tr = btnElement ? btnElement.closest('tr') : null;
+    if(tr){
+      tr.style.opacity = '0';
+      tr.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        debts = debts.filter(x => String(x.id) !== String(id));
+        save();
+        render();
+      }, 250);
+    } else {
+      debts = debts.filter(x => String(x.id) !== String(id));
+      save();
+      render();
+    }
+  }
+}
+
+function openImage(src){
+  document.getElementById('modalImg').src = src;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+function closeImage(){
+  document.getElementById('modal').classList.add('hidden');
+  document.getElementById('modalImg').src = '';
+}
+
+function render(){
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const list = debts.filter(d => d.type === currentTab && d.name.toLowerCase().includes(q));
+  let total = 0, interest = 0;
+  list.forEach(d => { total += d.amount; interest += calcInterest(d); });
+
+  document.getElementById('totalPrincipal').textContent = formatMoney(total);
+  document.getElementById('totalInterest').textContent = formatMoney(interest);
+
+  const box = document.getElementById('list');
+  if(!list.length){
+    box.innerHTML = `<tr><td colspan="6" class="empty">Chưa có khoản nợ nào trong danh sách.</td></tr>`;
+    return;
+  }
+
+  box.innerHTML = list.map(d => {
+    const days = calcDays(d.date);
+    const interestNow = calcInterest(d);
+    const daily = d.amount * (d.rate / 1000000);
+    const sumTotal = d.amount + interestNow;
+
+    return `<tr>
+      <td>
+        <strong style="font-size:14px;color:#0f172a">${esc(d.name)}</strong>
+        ${d.note ? `<div style="font-size:11px;color:#64748b;margin-top:2px">📝 ${esc(d.note)}</div>` : ''}
+      </td>
+
+      <td>
+        <strong style="color:#0f172a">${formatMoney(d.amount)}</strong>
+      </td>
+
+      <td style="color:#475569">
+        📅 ${formatDate(d.date)}
+      </td>
+
+      <td>
+        <span style="background:#f1f5f9;padding:3px 8px;border-radius:6px;font-weight:700">${days} ngày</span>
+      </td>
+
+      <td>
+        <div style="color:#dc2626;font-weight:700">+${formatMoney(interestNow)}</div>
+        <div style="font-size:11px;color:#64748b">(${formatMoney(daily)}/ngày)</div>
+      </td>
+
+      <td>
+        ${d.image ? `
+          <button class="btn-img-small" onclick="openImage('${d.image}')">
+            📷 Xem ảnh
+          </button>
+        ` : `<span class="no-img">Không ảnh</span>`}
+        
+        <div class="action-btns">
+          <button class="btn-mini" onclick="editDebt('${d.id}')">✏️ Sửa</button>
+          <button class="btn-mini delete" onclick="deleteDebt('${d.id}', this)">🗑️ Xóa</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function formatDate(s){
+  if(!s) return '';
+  const [y,m,d] = s.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function esc(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+render();
+</script>
+</body>
+</html>
